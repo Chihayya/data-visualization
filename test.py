@@ -1,5 +1,10 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import csv
+
+journals = []
+categories = []
+draw_data = []
 
 class journal:
     def __init__(self, name, category):
@@ -29,39 +34,89 @@ class journal:
                 self.total_cities[5] = cities
                 self.IFs[5] = IF
 
-journals = []
+def file_IO(input_database):
+    #開檔
+    file = open(f"{input_database}(2019~2024).csv", encoding = "utf-8")
+    reader = csv.reader(file)
 
-#開檔
-file = open("JCR_AHCI(2019~2024).csv", encoding = "utf-8")
-reader = csv.reader(file)
+    #讀檔
+    for row in reader:
+        if len(journals) == 0:
+            journal1 = journal(row[7], row[8])
+            journal1.add_data(row[0], row[1], row[14])
+            journals.append(journal1)
+            continue
 
-#讀檔
-for row in reader:
-    if len(journals) == 0:
-        journal1 = journal(row[7], row[8])
-        journal1.add_data(row[0], row[1], row[14])
-        journals.append(journal1)
-        continue
+        find = False
+        for j in journals:                                        
+            if j.name == row[7] and j.category == row[8]:
+                j.add_data(row[0], row[1], row[14])
+                find = True
+                break
 
-    find = False
-    for j in journals:                                        
-        if j.name == row[7] and j.category == row[8]:
-            j.add_data(row[0], row[1], row[14])
-            find = True
+        if find == False:
+            journal1 = journal(row[7], row[8])
+            journal1.add_data(row[0], row[1], row[14])
+            journals.append(journal1)
+
+def draw_line_chart():
+    x = [2019, 2020, 2021, 2022, 2023, 2024]
+    y = []
+
+    for line in draw_data:
+        print(line.name)
+        y = line.total_cities
+        plt.plot(x, y)
+        y = []
+    plt.show()
+
+def choose_category():
+    for j in journals:
+        if j.category not in categories:
+            categories.append(j.category)
+    
+    for i in range(0, len(categories), 1):
+        print(f"{(i+1)}. {categories[i]}")
+
+    input_category = input("Please input the category: ")
+
+    for j in journals:
+        if j.category == input_category:
+            draw_data.append(j)
+
+def choose_journals():
+    while True:
+        input_journal = input("Please input the journal(Enter -1 to end): ")
+
+        if input_journal == "-1":
             break
 
-    if find == False:
-        journal1 = journal(row[7], row[8])
-        journal1.add_data(row[0], row[1], row[14])
-        journals.append(journal1)
-            
-#繪圖
-x = [2019, 2020, 2021, 2022, 2023, 2024]
-y = []
+        for j in journals:
+            if j.name == input_journal:
+                draw_data.append(j)
 
-for i in range(6):
-    print(journals[0].total_cities[i])
-    y.append(journals[0].total_cities[i])
+def choose_all():
+    123
 
-plt.plot(x, y)
-plt.show()
+def option():
+    print("1.比對個別期刊\n2.比對領域內所有期刊\n3.比對所有期刊")
+    input_option = input("Please input the option: ")
+
+    match input_option:
+        case "1":
+            choose_journals()
+            draw_line_chart()
+        case "2":
+            choose_category()
+            draw_line_chart()
+        case "3":
+            choose_all()
+            draw_line_chart()
+        case _:
+            print("sorry, there's no any options like that")
+
+##### main ####
+
+input_database = input("Please input the database: ")
+file_IO(input_database)
+option()
